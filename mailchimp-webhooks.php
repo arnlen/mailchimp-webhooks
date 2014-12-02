@@ -2,11 +2,11 @@
 
 /**
  * Plugin Name:       MailChimp WebHooks (mcwh)
- * Plugin URI:        http://example.com/plugin-name-uri/
+ * Plugin URI:        https://github.com/pommiegranit/mailchimp-webhooks
  * Description:       Allows WordPress users to be updated with MailChimp subscribe/unsubscribe actions
  * Version:           1.0.0
  * Author:            Chris Knowles
- * Author URI:        http://example.com/
+ * Author URI:        http://premium.wpmudev.org/blog/author/chrisdknowles
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Text Domain:       mcwh
@@ -242,7 +242,7 @@ function mcwh_webhook_log_render() {
 	$mcwh_settings = get_option( 'mcwh_settings' );
 	
 	?>
-	<input type='text' name='mcwh_settings[keep_log]' value='<?php echo $mcwh_settings['keep_log']; ?>' >
+	<input type='checkbox' name='mcwh_settings[keep_log]' <?php echo $mcwh_settings['keep_log']? 'checked':''; ?> value="1">
 	<p>Your Webhook URL is: <?php echo get_option('siteurl') . '/webhook.php?key=' . $mcwh_settings['webhook_key']; ?></p>
 	<?php
 }
