@@ -24,7 +24,7 @@ function mcwh_init(){
 	/* if global option mcwh_settings doesn't exist then create it */
 	if ( $mcwh_settings == false ) {
 	
-		add_option( 'mcwh_settings', array('hard_subscribe' => false, 'hard_unsubscribe' => false, 'webhook_key' => 'ybwoybbaseemc2') );	
+		add_option( 'mcwh_settings', array('hard_subscribe' => 0, 'hard_unsubscribe' => 0, 'webhook_key' => 'putyourkeyhere', 'keep_log' => 1 ) );	
 		
 		$mcwh_settings = get_option( 'mcwh_settings' ); 
 	}
@@ -85,29 +85,34 @@ function mcwh_settings_init() {
 		'mcwh_section' 
 	);
 
+	add_settings_field( 
+		'keep_log', 
+		__( 'Write activity to log?', 'mailchimp_webhooks' ), 
+		'mcwh_webhook_log_render', 
+		'mcwh', 
+		'mcwh_section' 
+	);
+
 }
 
 
 function mcwh_endpoint(){
 
 	// access webhook at url such as http://[your site]/mailchimp/webhook
-    	// add_rewrite_endpoint( 'webhook', EP_PERMALINK );
-    	add_rewrite_rule( 'webhook' , 'index.php?webhook=1', 'top' );
-    	add_rewrite_tag( '%webhook%' , '([^&]+)' );
+    add_rewrite_rule( 'webhook' , 'index.php?webhook=1', 'top' );
+    add_rewrite_tag( '%webhook%' , '([^&]+)' );
 
 }
 
 function mcwh_parse_request( &$wp )
 {
    
-    	if ( array_key_exists( 'webhook', $wp->query_vars ) ) {
-    
-    		echo 'about to action webhook';
+    if ( array_key_exists( 'webhook', $wp->query_vars ) ) {
         
-        	mcwh_action_webhook();
+        mcwh_action_webhook();
         
-        	exit();
-    	}
+        exit();
+    }
     
 }
 
@@ -135,8 +140,8 @@ function mcwh_action_webhook() {
     	
 	} else {
     
-    		//process the request
-    		mcwh_log('Processing a "'.$_POST['type'].'" request for email address ' . $_POST['data']['email'] . '...');
+    	//process the request
+    	mcwh_log('Processing a "'.$_POST['type'].'" request for email address ' . $_POST['data']['email'] . '...');
     	
 		switch($_POST['type']){
 			case 'subscribe'  : mcwh_subscribe($_POST['data']);   break;
@@ -159,7 +164,7 @@ function mcwh_show_user_profile( $user ) {
 
 	$subscribed = get_user_meta( $user->ID, '_newsletter_subscriber', true );
 
-    	echo '<h3>MailChimp Newsletter</h3>
+    echo '<h3>MailChimp Newsletter</h3>
     		<table class="form-table">
         		<tr>
             			<th><label for="_newsletter_subscriber">Current Subscriber</label></th>
@@ -176,7 +181,7 @@ function mcwh_show_user_profile( $user ) {
 }
 
 /*
- * activate the plugin
+ * initialize the plugin
  */
 mcwh_init();
 
@@ -228,6 +233,16 @@ function mcwh_webhook_key_render() {
 	
 	?>
 	<input type='text' name='mcwh_settings[webhook_key]' value='<?php echo $mcwh_settings['webhook_key']; ?>' >
+	<?php
+}
+
+
+function mcwh_webhook_log_render() {
+
+	$mcwh_settings = get_option( 'mcwh_settings' );
+	
+	?>
+	<input type='text' name='mcwh_settings[keep_log]' value='<?php echo $mcwh_settings['keep_log']; ?>' >
 	<p>Your Webhook URL is: <?php echo get_option('siteurl') . '/webhook.php?key=' . $mcwh_settings['webhook_key']; ?></p>
 	<?php
 }
@@ -255,13 +270,19 @@ function mcwh_settings_check($settings){
 	} else {
 		$new_settings['hard_unsubscribe'] = 0;
 	}
+
+	if ( $settings['keep_log'] ) {
+		$new_settings['keep_log'] = 1;
+	} else {
+		$new_settings['keep_log'] = 0;
+	}
 	
 	return $new_settings;
 
 }
 
 /* Handles a subscribe notification from MailChimp
- * If hard_unsubscribe is true then a new user will be created if it doesn't already exist
+ * If create new user on subscribe is true then a new user will be created if it doesn't already exist
  * User meta _newsletter_subscribe is always set to 1 
  */              
 function mcwh_subscribe($data){
@@ -374,8 +395,11 @@ function mchw_profile($data){
 
 function mcwh_log($msg){
 
+	$mcwh_settings = get_option( 'mcwh_settings' );
+
+	if ( $mcwh_settings['keep_log'] ) {
     	$logfile = plugin_dir_path(__FILE__) . 'webhook.log';
     	file_put_contents($logfile,date("Y-m-d H:i:s")." | ".$msg."\n",FILE_APPEND);
-    
-    	// echo $msg;
+    }
+
 }
