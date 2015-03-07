@@ -243,7 +243,7 @@ function mcwh_webhook_log_render() {
 	
 	?>
 	<input type='checkbox' name='mcwh_settings[keep_log]' <?php echo $mcwh_settings['keep_log']? 'checked':''; ?> value="1">
-	<p>Your Webhook URL is: <?php echo get_option('siteurl') . '/webhook/key=' . $mcwh_settings['webhook_key']; ?></p>
+	<p>Your Webhook URL is: <?php echo get_option('siteurl') . '/webhook/?key=' . $mcwh_settings['webhook_key']; ?></p>
 	<?php
 }
 
